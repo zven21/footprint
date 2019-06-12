@@ -1,52 +1,48 @@
 defmodule Footprint do
   @moduledoc """
   Documentation for Footprint.
+
+  ## Examples
+
+      iex> Footprint.insert()
+      iex> Footprint.update()
+      iex> Footprint.transaction()
+
   """
 
   alias Ecto.Multi
-  alias Footprint.Version
   alias Footprint.Client, as: FC
 
-  @repo FC.repo()
-
   @doc """
-  Insert version.
+  build insert func.
   """
   @spec insert(Ecto.Changeset.t()) :: {:ok, Ecto.Schema.t()} | {:error, Ecto.Changeset.t()}
   def insert(changeset) do
+    repo = FC.repo()
+
+    changeset |> repo.insert()
+  end
+
+  @doc """
+  build update func.
+  """
+  @spec update(Ecto.Changeset.t()) :: {:ok, Ecto.Schema.t()} | {:error, Ecto.Changeset.t()}
+  def update(changeset) do
+    repo = FC.repo()
+
     Multi.new()
-    |> Multi.insert(:model, changeset)
-    |> may_insert_version()
-    |> @repo.transaction()
-  end
-
-  def may_insert_version(multi) do
-    IO.inspect(multi)
-
-    insert_version_fn = fn %{model: changeset} ->
-      # when object first create, not need create version.
-      if changeset.data.id do
-        attrs = %{
-          item_type: changeset.data.__struct__ |> Module.split() |> List.last(),
-          item_id: changeset.data.id,
-          item_prev: build_item_prev(changeset),
-          item_current: build_item_current(changeset)
-        }
-
-        case Footprint.insert_version(attrs) do
-          {:ok, topic} -> {:ok, topic}
-          {:error, reason} -> {:error, reason}
-        end
-      end
-    end
-
-    Multi.insert(multi, :may_insert_version, insert_version_fn)
-  end
-
-  def insert_version(attrs) do
-    attrs
-    |> Version.changeset()
-    |> @repo.insert()
+    |> Multi.update(:model, changeset)
+    |> Multi.run(:version, fn repo, %{model: _} ->
+      %{
+        item_type: changeset.data.__struct__ |> Module.split() |> List.last(),
+        item_id: changeset.data.id,
+        item_prev: build_item_prev(changeset),
+        item_current: build_item_current(changeset)
+      }
+      |> Footprint.Version.changeset()
+      |> repo.insert()
+    end)
+    |> repo.transaction()
   end
 
   defp build_item_current(changeset) do
