@@ -1,2 +1,2 @@
 ExUnit.start()
-Dummy.Repo.start_link()
+Footprint.Repo.start_link()
