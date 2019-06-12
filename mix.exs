@@ -44,7 +44,7 @@ defmodule Footprint.MixProject do
     ]
   end
 
-  defp elixirc_paths(:test), do: ["lib", "priv", "test/support", "test/dummy"]
+  defp elixirc_paths(:test), do: ["lib", "priv", "test/support"]
   defp elixirc_paths(_), do: ["lib"]
 
   defp aliases do

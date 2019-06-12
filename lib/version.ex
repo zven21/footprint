@@ -5,6 +5,9 @@ defmodule Footprint.Version do
 
   use Ecto.Schema
   import Ecto.Changeset
+  alias Footprint.Version
+
+  @type t :: %Version{}
 
   schema "versions" do
     field(:item_type, :string)
@@ -13,19 +16,22 @@ defmodule Footprint.Version do
     field(:item_current, :map)
     field(:origin, :string)
     field(:meta, :map)
+
+    timestamps(updated_at: false)
   end
 
   def changeset(attrs \\ %{}) do
     required_fields = ~w(
-      item_id
-      item_type
-      item_prev
-      item_current
+
     )a
 
     optional_fields = ~w(
       origin
       meta
+      item_id
+      item_type
+      item_prev
+      item_current
     )a
 
     %Version{}
