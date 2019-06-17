@@ -6,7 +6,6 @@
 ## Table of contents
 
 * [Getting started](#getting-started)
-* [TODO](#todo)
 * [Demo](#demo)
 * [Contributing](#contributing)
 * [Make a pull request](#make-a-pull-request)
@@ -20,7 +19,7 @@
 ```elixir
 def deps do
   [
-    {:footprint, "~> 0.3.0"}
+    {:footprint, "~> 0.3.1"}
   ]
 end
 ```
@@ -30,18 +29,6 @@ end
 ```elixir
 config :footprint, repo: MyApp.Rep
 ```
-
-## TODO
-
-* [x] Build `Footprint.insert(changeset)` func.
-* [x] Build `Footprint.update(changeset)` func.
-* [x] Build `Footprint.delete(changeset)` func.
-* [x] Gets a object all version.
-* [ ] Diff object version.
-* [ ] Apply one operation.
-* [x] Support meta info.
-* [x] Add event and inspect output.
-
 
 ## Demo
 
