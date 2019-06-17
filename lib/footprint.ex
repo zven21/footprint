@@ -210,7 +210,13 @@ defmodule Footprint do
       item_prev: build_item_prev(changeset),
       item_changes: bulid_item_changes(changeset),
       item_current: build_item_current(changeset),
-      meta: options[:meta]
+      meta: options[:meta],
+      originator_id:
+        case options[:originator] do
+          nil -> nil
+          _ -> options[:originator] |> Map.get(:id)
+        end,
+      origin: options[:origin]
     }
   end
 
@@ -224,7 +230,13 @@ defmodule Footprint do
       item_prev: build_item_prev(changeset),
       item_changes: bulid_item_changes(changeset),
       item_current: build_item_current(changeset),
-      meta: options[:meta]
+      meta: options[:meta],
+      originator_id:
+        case options[:originator] do
+          nil -> nil
+          _ -> options[:originator] |> Map.get(:id)
+        end,
+      origin: options[:origin]
     }
   end
 
@@ -238,7 +250,13 @@ defmodule Footprint do
       item_prev: model |> Map.from_struct() |> Map.delete(:__meta__),
       item_changes: model |> Map.from_struct() |> Map.delete(:__meta__),
       item_current: %{},
-      meta: options[:meta]
+      meta: options[:meta],
+      originator_id:
+        case options[:originator] do
+          nil -> nil
+          _ -> options[:originator] |> Map.get(:id)
+        end,
+      origin: options[:origin]
     }
   end
 

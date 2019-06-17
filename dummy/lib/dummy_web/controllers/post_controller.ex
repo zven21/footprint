@@ -16,7 +16,7 @@ defmodule DummyWeb.PostController do
 
   def create(conn, %{"post" => post_params}) do
     case CMS.create_post(post_params) do
-      {:ok, post} ->
+      {:ok, %{model: post}} ->
         conn
         |> put_flash(:info, "Post created successfully.")
         |> redirect(to: Routes.post_path(conn, :show, post))
@@ -28,7 +28,8 @@ defmodule DummyWeb.PostController do
 
   def show(conn, %{"id" => id}) do
     post = CMS.get_post!(id)
-    render(conn, "show.html", post: post)
+    versions = Footprint.get_versions(post)
+    render(conn, "show.html", post: post, versions: versions)
   end
 
   def edit(conn, %{"id" => id}) do
@@ -41,7 +42,7 @@ defmodule DummyWeb.PostController do
     post = CMS.get_post!(id)
 
     case CMS.update_post(post, post_params) do
-      {:ok, post} ->
+      {:ok, %{model: post}} ->
         conn
         |> put_flash(:info, "Post updated successfully.")
         |> redirect(to: Routes.post_path(conn, :show, post))

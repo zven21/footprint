@@ -52,7 +52,7 @@ defmodule Dummy.CMS do
   def create_post(attrs \\ %{}) do
     %Post{}
     |> Post.changeset(attrs)
-    |> Repo.insert()
+    |> Footprint.insert()
   end
 
   @doc """
@@ -70,7 +70,7 @@ defmodule Dummy.CMS do
   def update_post(%Post{} = post, attrs) do
     post
     |> Post.changeset(attrs)
-    |> Repo.update()
+    |> Footprint.update()
   end
 
   @doc """
@@ -86,7 +86,7 @@ defmodule Dummy.CMS do
 
   """
   def delete_post(%Post{} = post) do
-    Repo.delete(post)
+    Footprint.delete(post)
   end
 
   @doc """

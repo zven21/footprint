@@ -18,6 +18,7 @@ defmodule Footprint.Version do
     field(:item_prev, :map)
     field(:item_current, :map)
     field(:item_changes, :map)
+    field(:originator_id, :integer)
     field(:origin, :string)
     field(:meta, :map)
 
@@ -33,6 +34,7 @@ defmodule Footprint.Version do
       item_changes
       item_prev
       item_current
+      originator_id
     )a
 
     optional_fields = ~w(

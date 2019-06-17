@@ -1,7 +1,7 @@
 defmodule Footprint.MixProject do
   use Mix.Project
 
-  @version "0.2.0"
+  @version "0.3.0"
   @github "https://github.com/zven21/footprint"
 
   def project do
