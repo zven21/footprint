@@ -20,7 +20,7 @@
 ```elixir
 def deps do
   [
-    {:footprint, "~> 0.2.0"}
+    {:footprint, "~> 0.3.0"}
   ]
 end
 ```
