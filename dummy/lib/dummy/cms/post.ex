@@ -34,5 +34,6 @@ defmodule Dummy.CMS.Post do
     post
     |> cast(attrs, optional_fields ++ required_fields)
     |> validate_required(required_fields)
+    |> validate_length(:title, max: 6)
   end
 end

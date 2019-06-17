@@ -1,98 +1,171 @@
 defmodule Footprint do
-  @moduledoc false
+  @moduledoc """
+
+  ## TODO
+
+    - [x] insert! and insert func.
+    - [x] update! and update func.
+    - [x] delete! and delete func.
+    - [ ] insert_or_update! and insert_or_update func.
+    - [ ] get_version and get_versions func.
+    - [ ] version diff and apply func.
+    - [x] footprint.inspect func.
+
+  """
 
   alias Ecto.Multi
+  alias Footprint.Version
   alias Footprint.Client, as: FC
 
-  # def insert!(), do: nil
-  # def update!(), do: nil
-  # def detete!(), do: nil
-  # def insert_or_update(), do: nil
-  # def get_version(), do: nil,
-  # def get_versions(), do: nil,
-  # def diff(), do: nil,
-  # def apply(), do: nil,
-  # def inspect(), do: nil
-
   @doc """
-  build insert func.
+  Same as insert/2
+
+  ## Example
+
+      iex> Post.changeset(%Post{}, %{title: "t1", body: "b1"}) |> Footprint.insert()
+      {:ok, %{model: %Dummy.CMS.Post{}, version: %Footprint.Version{}}
+
+      iex> Post.changeset(%Post{}, %{title: "t1"}) |> Footprint.insert
+      {:error, :model, #Ecto.Changeset<>, %{}}
+
   """
   @spec insert(Ecto.Changeset.t()) :: {:ok, Ecto.Schema.t()} | {:error, Ecto.Changeset.t()}
-  def insert(changeset) do
+  def insert(changeset, options \\ [meta: nil]) do
     repo = FC.repo()
 
     Multi.new()
     |> Multi.insert(:model, changeset)
     |> Multi.run(:version, fn repo, %{model: model} ->
-      %{
-        item_base: changeset.data.__struct__ |> to_string(),
-        item_type: changeset.data.__struct__ |> Module.split() |> List.last(),
-        item_id: model.id,
-        item_prev: build_item_prev(changeset),
-        item_changes: bulid_item_changes(changeset),
-        item_current: build_item_current(changeset)
-      }
-      |> Footprint.Version.changeset()
+      make_version_struct(%{event: "insert"}, changeset, model, options)
       |> repo.insert()
     end)
     |> repo.transaction()
   end
 
   @doc """
-  build update func.
+  Same as insert/2 but returns only the model struct or raises if the changeset is invalid.
+
+  ## Examples
+
+      iex> Post.changeset(%Post{}, %{title: "t1", body: "b1"}) |> Footprint.insert!()
+      %Dummy.CMS.Post{}
+
+      iex> Post.changeset(%Post{}, %{title: "t1"}) |> Footprint.insert!()
+      ** (Ecto.InvalidChangesetError)
+
+  """
+  def insert!(changeset, options \\ [meta: nil]) do
+    repo = FC.repo()
+
+    repo.transaction(fn ->
+      model = repo.insert!(changeset)
+      make_version_struct(%{event: "insert"}, changeset, model, options) |> repo.insert!()
+      model
+    end)
+    |> elem(1)
+  end
+
+  @doc """
+  Same as update/2
+
+  ## Examples
+
+      iex> p1 = Repo.get(Post, 1)
+      iex> Post.changeset(p1, %{title: "t2"}) |> Footprint.update()
+      {:ok, %{model: %Dummy.CMS.Post{}, version: %Footprint.Version{}}
+
+      iex> Post.changeset(p1, %{title: "tttttt7"}) |> Footprint.update()
+      {:error, :model, #Ecto.Changeset<>, %{}}
+
   """
   @spec update(Ecto.Changeset.t()) :: {:ok, Ecto.Schema.t()} | {:error, Ecto.Changeset.t()}
-  def update(changeset) do
+  def update(changeset, options \\ [meta: nil]) do
     repo = FC.repo()
 
     Multi.new()
     |> Multi.update(:model, changeset)
-    |> Multi.run(:version, fn repo, %{model: model} ->
-      %{
-        item_base: changeset.data.__struct__ |> to_string(),
-        item_type: changeset.data.__struct__ |> Module.split() |> List.last(),
-        item_id: model.id,
-        item_changes: bulid_item_changes(changeset),
-        item_prev: build_item_prev(changeset),
-        item_current: build_item_current(changeset)
-      }
-      |> Footprint.Version.changeset()
+    |> Multi.run(:version, fn repo, %{model: _} ->
+      make_version_struct(%{event: "update"}, changeset, options)
       |> repo.insert()
     end)
     |> repo.transaction()
   end
 
   @doc """
-  Delete Func.
+  Same as update!/2
+
+  ## Examples
+
+      iex> p1 = Repo.get(Post, 1)
+      iex> Post.changeset(p1, %{title: "t2"}) |> Footprint.update()
+      %Dummy.CMS.Post{}
+
+      iex> Post.changeset(p1, %{title: "tttttt7"}) |> Footprint.update!()
+      ** (Ecto.InvalidChangesetError)
+
   """
-  @spect delete(Ecto.Schema.t()) :: {:ok, Ecto.Schema.t()} | {:error, Ecto.Changeset.t()}
-  def delete(struct) do
+  def update!(changeset, options \\ [meta: nil]) do
+    repo = FC.repo()
+
+    repo.transaction(fn ->
+      model = repo.update!(changeset)
+      make_version_struct(%{event: "update"}, changeset, options) |> repo.insert!()
+      model
+    end)
+    |> elem(1)
+  end
+
+  @doc """
+  Same as delete/2
+
+  ## Examples
+
+      iex> p1 = Repo.get(Post, 1)
+      iex> p1 |> Footprint.delete()
+      {:ok, %{model: %Dummy.CMS.Post{}, version: %Footprint.Version{}}
+
+  """
+  @spec delete(Ecto.Schema.t()) :: {:ok, Ecto.Schema.t()} | {:error, Ecto.Changeset.t()}
+  def delete(struct, options \\ [meta: nil]) do
     repo = FC.repo()
 
     Multi.new()
     |> Multi.delete(:model, struct)
     |> Multi.run(:version, fn repo, %{} ->
-      %{
-        item_base: struct.__struct__ |> to_string(),
-        item_type: struct.__struct__ |> Module.split() |> List.last(),
-        item_id: struct.id,
-        item_changes: struct |> Map.from_struct() |> Map.delete(:__meta__),
-        item_prev: struct |> Map.from_struct() |> Map.delete(:__meta__),
-        item_current: %{}
-      }
-      |> Footprint.Version.changeset()
+      make_version_struct(%{event: "delete"}, struct, options)
       |> repo.insert()
     end)
     |> repo.transaction()
   end
 
   @doc """
-  Prepase add footprint_fields_labels to origin Module.
-  Post.footprint_field_labels = %{title: "Title", body: "Body"}
+  Sames as delete!/2
 
   ## Examples
 
-    > version1 |> Footprint.inspect
+      iex> p1 = Repo.get(Post, 1)
+      iex> p1 |> Footprint.delete!()
+      %Dummy.CMS.Post{}
+
+  """
+  def delete!(struct, options \\ [meta: nil]) do
+    repo = FC.repo()
+
+    repo.transaction(fn ->
+      model = repo.delete!(struct, options)
+      make_version_struct(%{event: "delete"}, struct, options) |> repo.insert!()
+      model
+    end)
+    |> elem(1)
+  end
+
+  @doc """
+  Prepase add footprint_fields_labels to origin Module.
+
+  ## Examples
+
+    Post.footprint_field_labels = %{title: "Title", body: "Body"}
+    iex> version1 |> Footprint.inspect
     %{"Body" => [nil, "body2"], "Title" => [nil, "title1"]}
 
   """
@@ -115,6 +188,45 @@ defmodule Footprint do
       _ ->
         item_changes
     end
+  end
+
+  defp make_version_struct(%{event: "insert"}, changeset, model, options) do
+    %Version{
+      event: "insert",
+      item_base: model.__struct__ |> to_string(),
+      item_type: model.__struct__ |> Module.split() |> List.last(),
+      item_id: model.id,
+      item_prev: build_item_prev(changeset),
+      item_changes: bulid_item_changes(changeset),
+      item_current: build_item_current(changeset),
+      meta: options[:meta]
+    }
+  end
+
+  defp make_version_struct(%{event: "update"}, changeset, options) do
+    %Version{
+      event: "update",
+      item_base: changeset.data.__struct__ |> to_string(),
+      item_type: changeset.data.__struct__ |> Module.split() |> List.last(),
+      item_id: changeset.data.id,
+      item_prev: build_item_prev(changeset),
+      item_changes: bulid_item_changes(changeset),
+      item_current: build_item_current(changeset),
+      meta: options[:meta]
+    }
+  end
+
+  defp make_version_struct(%{event: "delete"}, model, options) do
+    %Version{
+      event: "delete",
+      item_base: model.__struct__ |> to_string(),
+      item_type: model.__struct__ |> Module.split() |> List.last(),
+      item_id: model.id,
+      item_prev: model |> Map.from_struct() |> Map.delete(:__meta__),
+      item_changes: model |> Map.from_struct() |> Map.delete(:__meta__),
+      item_current: %{},
+      meta: options[:meta]
+    }
   end
 
   defp bulid_item_changes(changeset) do
