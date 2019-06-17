@@ -15,10 +15,13 @@ defmodule Mix.Tasks.Footprint.Init do
       use Ecto.Migration
       def change do
         create table(:versions) do
+          add :event,        :string
+          add :item_base,    :string
           add :item_type,    :string, null: false
           add :item_id,      :integer
           add :item_current, :map, null: false
           add :item_prev,    :map, null: false
+          add :item_changes, :map, null: false
           add :meta,         :map
           add :origin,       :string
           add :inserted_at,  :utc_datetime, null: false

@@ -3,10 +3,13 @@ defmodule Footprint.Repo.Migrations.AddVersionsTable do
 
   def change do
     create table(:versions) do
-      add :item_type, :string, null: false
+      add :event, :string
       add :item_id, :integer, null: false
+      add :item_type, :string, null: false
+      add :item_base, :string, null: false
       add :item_prev, :map, null: false
       add :item_current, :map, null: false
+      add :item_changes, :map, null: false
       add :origin, :string
       add :meta, :map
 

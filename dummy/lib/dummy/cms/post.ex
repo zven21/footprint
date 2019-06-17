@@ -12,6 +12,13 @@ defmodule Dummy.CMS.Post do
     timestamps()
   end
 
+  def footprint_field_labels do
+    %{
+      title: "Title",
+      body: "Body"
+    }
+  end
+
   def changeset(post, attrs) do
     optional_fields = ~w(
       last_commented_at
