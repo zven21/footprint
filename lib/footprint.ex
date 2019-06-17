@@ -7,7 +7,7 @@ defmodule Footprint do
     - [x] update! and update func.
     - [x] delete! and delete func.
     - [ ] insert_or_update! and insert_or_update func.
-    - [ ] get_version and get_versions func.
+    - [x] get_version and get_versions func.
     - [ ] version diff and apply func.
     - [x] footprint.inspect func.
 
@@ -16,6 +16,16 @@ defmodule Footprint do
   alias Ecto.Multi
   alias Footprint.Version
   alias Footprint.Client, as: FC
+
+  defdelegate get_version(record), to: Footprint.VersionQueries
+  defdelegate get_version(model_or_record, id_or_options), to: Footprint.VersionQueries
+  defdelegate get_version(model, id, options), to: Footprint.VersionQueries
+
+  defdelegate get_versions(record), to: Footprint.VersionQueries
+  defdelegate get_versions(model_or_record, id_or_options), to: Footprint.VersionQueries
+  defdelegate get_versions(model, id, options), to: Footprint.VersionQueries
+
+  defdelegate get_current_model(version), to: Footprint.VersionQueries
 
   @doc """
   Same as insert/2
@@ -84,8 +94,8 @@ defmodule Footprint do
 
     Multi.new()
     |> Multi.update(:model, changeset)
-    |> Multi.run(:version, fn repo, %{model: _} ->
-      make_version_struct(%{event: "update"}, changeset, options)
+    |> Multi.run(:version, fn repo, %{model: model} ->
+      make_version_struct(%{event: "update"}, changeset, model, options)
       |> repo.insert()
     end)
     |> repo.transaction()
@@ -109,7 +119,7 @@ defmodule Footprint do
 
     repo.transaction(fn ->
       model = repo.update!(changeset)
-      make_version_struct(%{event: "update"}, changeset, options) |> repo.insert!()
+      make_version_struct(%{event: "update"}, changeset, model, options) |> repo.insert!()
       model
     end)
     |> elem(1)
@@ -192,6 +202,7 @@ defmodule Footprint do
 
   defp make_version_struct(%{event: "insert"}, changeset, model, options) do
     %Version{
+      no: 1,
       event: "insert",
       item_base: model.__struct__ |> to_string(),
       item_type: model.__struct__ |> Module.split() |> List.last(),
@@ -203,8 +214,9 @@ defmodule Footprint do
     }
   end
 
-  defp make_version_struct(%{event: "update"}, changeset, options) do
+  defp make_version_struct(%{event: "update"}, changeset, model, options) do
     %Version{
+      no: build_item_version_no(model),
       event: "update",
       item_base: changeset.data.__struct__ |> to_string(),
       item_type: changeset.data.__struct__ |> Module.split() |> List.last(),
@@ -218,6 +230,7 @@ defmodule Footprint do
 
   defp make_version_struct(%{event: "delete"}, model, options) do
     %Version{
+      no: build_item_version_no(model),
       event: "delete",
       item_base: model.__struct__ |> to_string(),
       item_type: model.__struct__ |> Module.split() |> List.last(),
@@ -249,5 +262,12 @@ defmodule Footprint do
   defp serialize(changeset) do
     relationships = changeset.data.__struct__.__schema__(:associations)
     Map.drop(changeset.changes, relationships)
+  end
+
+  defp build_item_version_no(model) do
+    model
+    |> get_version()
+    |> Map.get(:no)
+    |> Kernel.+(1)
   end
 end
