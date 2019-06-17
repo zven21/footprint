@@ -36,12 +36,11 @@ config :footprint, repo: MyApp.Rep
 * [x] Build `Footprint.insert(changeset)` func.
 * [x] Build `Footprint.update(changeset)` func.
 * [x] Build `Footprint.delete(changeset)` func.
-* [ ] Build `Footprint.transaction(multi)` func.
-* [ ] Gets a object all version.
+* [x] Gets a object all version.
 * [ ] Diff object version.
 * [ ] Apply one operation.
-* [ ] Support meta info.
-* [ ] Add event and inspect output.
+* [x] Support meta info.
+* [x] Add event and inspect output.
 
 
 ## Demo

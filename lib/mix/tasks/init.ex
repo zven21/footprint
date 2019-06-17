@@ -16,6 +16,7 @@ defmodule Mix.Tasks.Footprint.Init do
       def change do
         create table(:versions) do
           add :event,        :string
+          add :no,           :integer
           add :item_base,    :string
           add :item_type,    :string, null: false
           add :item_id,      :integer

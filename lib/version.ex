@@ -10,6 +10,7 @@ defmodule Footprint.Version do
   @type t :: %Version{}
 
   schema "versions" do
+    field(:no, :integer)
     field(:item_base, :string)
     field(:item_id, :integer)
     field(:item_type, :string)
@@ -25,6 +26,7 @@ defmodule Footprint.Version do
 
   def changeset(attrs \\ %{}) do
     required_fields = ~w(
+      no
       item_base
       item_id
       item_type
