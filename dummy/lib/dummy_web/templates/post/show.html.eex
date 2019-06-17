@@ -29,5 +29,29 @@
 
 </ul>
 
+<table>
+  <thead>
+    <tr>
+      <th>Version No</th>
+      <th>Changes</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+<%= for version <- @versions do %>
+    <tr>
+      <td><%= version.no %></td>
+      <td>
+        <ul>
+          <%= for {k, v} <- Footprint.inspect(version) do %>
+            <li><%= k %>: <%= hd(v) || "" %> -> <%= tl(v) %></li>
+          <% end %>
+        </ul>
+      </td>
+    </tr>
+<% end %>
+  </tbody>
+</table>
+
 <span><%= link "Edit", to: Routes.post_path(@conn, :edit, @post) %></span>
 <span><%= link "Back", to: Routes.post_path(@conn, :index) %></span>
