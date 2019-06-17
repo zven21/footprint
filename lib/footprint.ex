@@ -40,7 +40,7 @@ defmodule Footprint do
 
   """
   @spec insert(Ecto.Changeset.t()) :: {:ok, Ecto.Schema.t()} | {:error, Ecto.Changeset.t()}
-  def insert(changeset, options \\ [meta: nil]) do
+  def insert(changeset, options \\ [meta: nil, originator: nil, origin: nil]) do
     repo = FC.repo()
 
     Multi.new()
@@ -64,7 +64,7 @@ defmodule Footprint do
       ** (Ecto.InvalidChangesetError)
 
   """
-  def insert!(changeset, options \\ [meta: nil]) do
+  def insert!(changeset, options \\ [meta: nil, originator: nil, origin: nil]) do
     repo = FC.repo()
 
     repo.transaction(fn ->
@@ -89,7 +89,7 @@ defmodule Footprint do
 
   """
   @spec update(Ecto.Changeset.t()) :: {:ok, Ecto.Schema.t()} | {:error, Ecto.Changeset.t()}
-  def update(changeset, options \\ [meta: nil]) do
+  def update(changeset, options \\ [meta: nil, originator: nil, origin: nil]) do
     repo = FC.repo()
 
     Multi.new()
@@ -114,7 +114,7 @@ defmodule Footprint do
       ** (Ecto.InvalidChangesetError)
 
   """
-  def update!(changeset, options \\ [meta: nil]) do
+  def update!(changeset, options \\ [meta: nil, originator: nil, origin: nil]) do
     repo = FC.repo()
 
     repo.transaction(fn ->
@@ -136,7 +136,7 @@ defmodule Footprint do
 
   """
   @spec delete(Ecto.Schema.t()) :: {:ok, Ecto.Schema.t()} | {:error, Ecto.Changeset.t()}
-  def delete(struct, options \\ [meta: nil]) do
+  def delete(struct, options \\ [meta: nil, originator: nil, origin: nil]) do
     repo = FC.repo()
 
     Multi.new()
@@ -158,7 +158,7 @@ defmodule Footprint do
       %Dummy.CMS.Post{}
 
   """
-  def delete!(struct, options \\ [meta: nil]) do
+  def delete!(struct, options \\ [meta: nil, originator: nil, origin: nil]) do
     repo = FC.repo()
 
     repo.transaction(fn ->
@@ -197,6 +197,26 @@ defmodule Footprint do
 
       _ ->
         item_changes
+    end
+  end
+
+  @doc """
+  Sames as insert_or_udpate/2.
+  """
+  def insert_or_update(changeset, options) do
+    case changeset.data.id do
+      nil -> insert(changeset, options)
+      _ -> update(changeset, options)
+    end
+  end
+
+  @doc """
+  Sames as insert_or_udpate!/2.
+  """
+  def insert_or_update!(changeset, options) do
+    case changeset.data.id do
+      nil -> insert!(changeset, options)
+      _ -> update!(changeset, options)
     end
   end
 
